@@ -1,0 +1,111 @@
+# Entity Registry for Search Engine
+# Format: {id: {id, name, symbol?, handle?, type, chain?}}
+
+tokens:
+  btc:
+    id: "btc"
+    name: "Bitcoin"
+    symbol: "BTC"
+    type: "token"
+    chain: "bitcoin"
+  eth:
+    id: "eth"
+    name: "Ethereum"
+    symbol: "ETH"
+    type: "token"
+    chain: "ethereum"
+  sol:
+    id: "sol"
+    name: "Solana"
+    symbol: "SOL"
+    type: "token"
+    chain: "solana"
+  ada:
+    id: "ada"
+    name: "Cardano"
+    symbol: "ADA"
+    type: "token"
+    chain: "cardano"
+  avax:
+    id: "avax"
+    name: "Avalanche"
+    symbol: "AVAX"
+    type: "token"
+    chain: "avalanche"
+
+projects:
+  uniswap:
+    id: "uniswap"
+    name: "Uniswap"
+    symbol: "UNI"
+    type: "project"
+    chain: "ethereum"
+  aave:
+    id: "aave"
+    name: "Aave"
+    symbol: "AAVE"
+    type: "project"
+    chain: "ethereum"
+  compound:
+    id: "compound"
+    name: "Compound"
+    symbol: "COMP"
+    type: "project"
+    chain: "ethereum"
+
+kols:
+  elonmusk:
+    id: "elon"
+    name: "Elon Musk"
+    handle: "@elonmusk"
+    type: "kol"
+  vitalikbuterin:
+    id: "vitalik"
+    name: "Vitalik Buterin"
+    handle: "@VitalikButerin"
+    type: "kol"
+  cz_binance:
+    id: "cz"
+    name: "Changpeng Zhao"
+    handle: "@cz_binance"
+    type: "kol"
+
+events:
+  halving:
+    id: "halving"
+    name: "Bitcoin Halving"
+    type: "event"
+    impact: "bullish"
+  etf_approval:
+    id: "etf_approval"
+    name: "ETF Approval"
+    type: "event"
+    impact: "bullish"
+  hack:
+    id: "hack"
+    name: "Protocol Hack"
+    type: "event"
+    impact: "bearish"
+  regulation:
+    id: "regulation"
+    name: "Regulatory Action"
+    type: "event"
+    impact: "bearish"
+
+macros:
+  fed_rate:
+    id: "fed_rate"
+    name: "Federal Reserve Rate Decision"
+    type: "macro"
+  inflation:
+    id: "inflation"
+    name: "Inflation Data"
+    type: "macro"
+  bank_crisis:
+    id: "bank_crisis"
+    name: "Banking Crisis"
+    type: "macro"
+  recession:
+    id: "recession"
+    name: "Recession Fears"
+    type: "macro"

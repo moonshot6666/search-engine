@@ -1,0 +1,140 @@
+# OpenSearch Index Configuration for Hybrid Search
+# Combines BM25 (keyword search) + kNN (vector search)
+
+index_name: "crypto-tweets-hybrid"
+
+settings:
+  number_of_shards: 1
+  number_of_replicas: 0
+  
+  # Enable hybrid search with neural search plugin
+  index.knn: true
+  index.knn.algo_param.ef_search: 100
+  
+  analysis:
+    analyzer:
+      crypto_analyzer:
+        type: "custom"
+        tokenizer: "standard"
+        filter: ["lowercase", "crypto_synonyms", "english_stemmer"]
+      
+    filter:
+      crypto_synonyms:
+        type: "synonym"
+        synonyms: [
+          "btc,bitcoin",
+          "eth,ethereum,ether", 
+          "sol,solana",
+          "ada,cardano",
+          "matic,polygon",
+          "avax,avalanche",
+          "dot,polkadot",
+          "link,chainlink"
+        ]
+      
+      english_stemmer:
+        type: "stemmer"
+        language: "english"
+
+mappings:
+  properties:
+    # Tweet identification
+    tweet_id:
+      type: "keyword"
+    
+    # Content fields for BM25 search
+    content:
+      type: "text"
+      analyzer: "crypto_analyzer"
+      search_analyzer: "crypto_analyzer"
+      
+    clean_content:
+      type: "text" 
+      analyzer: "crypto_analyzer"
+      search_analyzer: "crypto_analyzer"
+    
+    original_content:
+      type: "text"
+      index: false  # Store but don't search
+    
+    # Metadata
+    created_at:
+      type: "date"
+      format: "strict_date_optional_time||epoch_millis"
+    
+    source_handle:
+      type: "keyword"
+    
+    source_followers:
+      type: "integer"
+    
+    engagement_score:
+      type: "integer"
+    
+    authority_score:
+      type: "float"
+    
+    language:
+      type: "keyword"
+    
+    market_impact:
+      type: "keyword"
+    
+    # Entity extraction for filtering and boosting
+    entities:
+      type: "nested"
+      properties:
+        entity_type:
+          type: "keyword"
+        entity_id:
+          type: "keyword"
+        name:
+          type: "text"
+        confidence:
+          type: "float"
+    
+    # Vector field for kNN search
+    embedding:
+      type: "knn_vector"
+      dimension: 1024  # BGE-large embedding dimension
+      method:
+        name: "hnsw"
+        space_type: "cosinesimilarity"
+        engine: "lucene"
+        parameters:
+          ef_construction: 512
+          m: 16
+    
+    # Computed scoring fields
+    final_score:
+      type: "float"
+      index: false
+
+# Search templates for different query types
+search_templates:
+  hybrid_search:
+    query:
+      hybrid:
+        queries:
+          - match:
+              clean_content: "{{query_string}}"
+          - knn:
+              embedding:
+                vector: "{{query_vector}}"
+                k: "{{vector_k}}"
+        
+  bm25_only:
+    query:
+      bool:
+        must:
+          - match:
+              clean_content: "{{query_string}}"
+        filter: "{{entity_filters}}"
+        
+  vector_only:  
+    query:
+      knn:
+        embedding:
+          vector: "{{query_vector}}"
+          k: "{{vector_k}}"
+          filter: "{{entity_filters}}"
