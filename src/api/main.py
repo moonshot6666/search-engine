@@ -290,7 +290,8 @@ async def search_tweets(request: SearchRequest):
             results.append({
                 "tweet_id": result.tweet_id,
                 "content": result.content,
-                "score": round(result.final_score, 4),
+                "final_score": round(result.final_score, 4),
+                "score": round(result.final_score, 4),  # Keep for backward compatibility
                 "created_at": result.created_at,
                 "source_handle": result.source_handle,
                 "engagement_score": result.engagement_score,
@@ -379,7 +380,8 @@ async def ask_natural_language(request: NaturalQueryRequest):
             results.append({
                 "tweet_id": result.tweet_id,
                 "content": result.content,
-                "score": round(result.final_score, 4),
+                "final_score": round(result.final_score, 4),
+                "score": round(result.final_score, 4),  # Keep for backward compatibility
                 "created_at": result.created_at,
                 "source_handle": result.source_handle,
                 "engagement_score": result.engagement_score,
@@ -449,7 +451,8 @@ async def search_tweets_clustered(request: SearchRequest):
                 cluster_results.append({
                     "tweet_id": result.tweet_id,
                     "content": result.content,
-                    "score": round(result.final_score, 4),
+                    "final_score": round(result.final_score, 4),
+                "score": round(result.final_score, 4),  # Keep for backward compatibility
                     "created_at": result.created_at,
                     "source_handle": result.source_handle,
                     "engagement_score": result.engagement_score,
@@ -474,7 +477,8 @@ async def search_tweets_clustered(request: SearchRequest):
             outliers.append({
                 "tweet_id": result.tweet_id,
                 "content": result.content,
-                "score": round(result.final_score, 4),
+                "final_score": round(result.final_score, 4),
+                "score": round(result.final_score, 4),  # Keep for backward compatibility
                 "created_at": result.created_at,
                 "source_handle": result.source_handle,
                 "engagement_score": result.engagement_score,

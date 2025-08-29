@@ -3,36 +3,35 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
-Hybrid search engine for financial/crypto content combining BM25 (keyword matching) + vector similarity (semantic search). **Works with pre-processed Twitter data from existing tagging pipeline**. Architecture: Pre-tagged Data → LLM → SearchSpec DSL → Query Planner → BM25+kNN → Rerank/Cluster → Summarize+Cite.
+**Investment-aware hybrid search engine** for financial/crypto content combining BM25 (keyword matching) + vector similarity (semantic search) with **intelligent investment advisory capabilities**. **Works with pre-processed Twitter data from existing tagging pipeline**. 
+
+**Key Innovation**: Advanced entity-sentiment scoring that provides balanced perspectives for investment queries, eliminating confirmation bias and promoting informed decision-making.
+
+Architecture: Pre-tagged Data → Investment Intent Detection → Entity+Sentiment Analysis → LocalHybridSearch → HDBSCAN Clustering → Investment-Aware Ranking
 
 ## Tech Stack
 - **Backend**: FastAPI + Pydantic (for SearchSpec validation)
-- **Search**: OpenSearch (hybrid BM25 + kNN vector search)
-- **Embeddings**: sentence-transformers/all-MiniLM-L6-v2 (384D) - Currently using, BGE-large/OpenAI (1024d) - Future
-- **ML**: HDBSCAN (clustering), scikit-learn (deduplication)
-- **LLM**: OpenAI/Anthropic for SearchSpec generation and summarization
+- **Search**: LocalHybridSearchEngine (BM25 + kNN vector search) with investment-aware scoring
+- **Embeddings**: sentence-transformers/all-MiniLM-L6-v2 (384D) - Production ready
+- **ML**: HDBSCAN (clustering), scikit-learn (deduplication), TF-IDF (keyword extraction)
+- **Investment Logic**: Entity detection, sentiment analysis, balanced scoring algorithms
+- **CLI**: Click + Rich for beautiful terminal interface
 
 ## Project Structure
 ```
 search_engine/
 ├── src/
-│   ├── api/main.py              # FastAPI endpoints with clustering
+│   ├── api/main.py              # FastAPI endpoints with investment advisory
 │   ├── etl/
-│   │   ├── embeddings.py        # BGE-large embedding generation
-│   │   └── normalize.py         # Content cleaning & entity extraction
+│   │   ├── embeddings.py        # 384D embedding generation (sentence-transformers)
+│   │   └── normalize.py         # Content cleaning & entity extraction  
 │   ├── search/
 │   │   ├── schema.py            # SearchSpec Pydantic models
-│   │   ├── local_search.py      # Local hybrid search (BM25+vector)
-│   │   ├── cluster.py           # Real-time HDBSCAN clustering
-│   │   ├── planner.py           # Query planning & execution
-│   │   ├── blend.py             # Score blending & reranking
-│   │   ├── bm25_search.py       # OpenSearch BM25 engine
-│   │   ├── vector_search.py     # OpenSearch kNN vector engine
-│   │   ├── setup_index.py       # OpenSearch index management
-│   │   └── index_data.py        # Bulk data indexing
+│   │   ├── local_search.py      # Investment-aware hybrid search (BM25+vector+entity+sentiment)
+│   │   ├── cluster.py           # Real-time HDBSCAN clustering with theme generation
+│   │   └── blend.py             # Score blending & result deduplication
 │   └── llm/
-│       ├── spec_gen.py          # LLM → SearchSpec conversion
-│       └── summarize.py         # Answer synthesis with citations
+│       └── spec_gen.py          # Natural language → SearchSpec conversion
 ├── data/
 │   └── expanded_sample_tweets.jsonl    # Sample tweets (50 tweets)
 ├── normalized/
@@ -40,9 +39,9 @@ search_engine/
 ├── config/
 │   ├── opensearch.yml           # Index mappings & settings
 │   └── entities.yml             # Token/project/KOL registry
-├── cli_search.py                # CLI search interface (NEW)
-├── docker-compose-minimal.yml   # OpenSearch setup
-├── test_search_system.py        # Comprehensive testing
+├── cli_search.py                # Investment-aware CLI search interface
+├── test_search_system.py        # Comprehensive system testing
+├── docker-compose-minimal.yml   # OpenSearch setup (optional)
 └── requirements.txt
 ```
 
@@ -118,15 +117,22 @@ curl "http://localhost:9200/crypto-tweets-hybrid/_search?pretty" \
   -d '{"query": {"match": {"content": "bitcoin"}}, "size": 2}'
 ```
 
-### CLI Search Interface (NEW) ⚡
+### Investment-Aware CLI Search Interface ⚡
 ```bash
-# Beautiful CLI interface for natural language search
+# Investment advisory queries with balanced perspectives
+python cli_search.py "should I buy Bitcoin?"
+python cli_search.py "when is a good time to sell SOL?"
+python cli_search.py "analyze ETH as an investment"
+
+# Traditional crypto analysis queries
 python cli_search.py "What's happening with Bitcoin?"
+python cli_search.py "why is SOL bullish?"
+python cli_search.py "DeFi market analysis"
 
 # Interactive mode with continuous queries
 python cli_search.py --interactive
 
-# Clustered results for thematic organization
+# Clustered results for thematic organization  
 python cli_search.py "crypto market sentiment" --clustered --size 10
 
 # Custom API endpoint and result size
@@ -138,9 +144,11 @@ python cli_search.py --help
 
 **CLI Features (Production-Ready):**
 - 🎨 **Rich Formatting**: Beautiful colors, emojis, and professional layout using `rich` library
-- ⚡ **Lightning Fast**: ~125ms response time (60x speedup from 7.6s after performance optimization)
+- ⚡ **Lightning Fast**: ~10-125ms response time (optimized for real-time UX)
+- 💡 **Investment Advisory**: Balanced perspectives for buy/sell/timing queries (eliminates confirmation bias)
 - 📊 **Comprehensive Scores**: Shows BM25, Vector, and Final relevance scores with precision
 - 🎯 **Smart Display**: Entity highlighting, market sentiment indicators (💎 BULLISH, 🔻 BEARISH)
+- 🧠 **Entity-Aware**: Automatically filters results by query subject (BTC queries → BTC content)
 - 👤 **Source Details**: Twitter handles, follower counts, engagement metrics with smart formatting
 - 🕐 **Relative Timestamps**: Human-friendly time display ("2h ago", "5m ago", "591d ago")
 - 🏆 **Ranked Results**: Medal emojis (🥇🥈🥉) for top results, numbered for others
@@ -151,16 +159,22 @@ python cli_search.py --help
 
 **CLI Usage Patterns:**
 ```bash
-# Quick searches
+# Investment advisory queries (balanced perspectives)
+python cli_search.py "should I buy Bitcoin?"          # → Bullish case + Risk factors
+python cli_search.py "when to sell Ethereum?"         # → Sell signals + Market timing  
+python cli_search.py "analyze Solana investment"      # → Comprehensive analysis
+
+# Traditional crypto research
 python cli_search.py "Bitcoin news today"
 python cli_search.py "Ethereum DeFi protocols" --size 10
+python cli_search.py "why is SOL bullish?" --size 5
 
 # Research mode with clustering
 python cli_search.py "crypto market analysis" --clustered --size 20
 
-# Interactive exploration
+# Interactive exploration with investment guidance
 python cli_search.py --interactive
-# Then type queries like: "What's happening with Solana?"
+# Then type queries like: "should I invest in DeFi tokens?"
 # Press Ctrl+C or type 'quit' to exit
 
 # Custom configurations
@@ -178,14 +192,32 @@ class SearchSpec(BaseModel):
     size: int = Field(ge=1, le=200)
 ```
 
-## Hybrid Search Architecture
+## Investment-Aware Hybrid Search Architecture
 
-### Query Flow
-1. **LLM → SearchSpec**: Function calling with strict schema validation
-2. **Query Planning**: Build parallel BM25 + kNN queries with shared filters
-3. **Score Blending**: `0.45*bm25 + 0.35*knn + 0.10*recency + 0.05*authority + 0.05*engagement`
-4. **Post-processing**: Dedupe (Jaccard >0.95) → MMR diversification → HDBSCAN clustering
-5. **Synthesis**: LLM summarization with citations per cluster
+### Enhanced Query Flow with Investment Intelligence
+1. **Query Analysis**: Natural language → Investment intent detection + Entity extraction + Sentiment analysis
+2. **Investment-Aware Scoring**: Entity relevance + Sentiment balance + Content quality analysis
+3. **Hybrid Search**: `0.45*bm25 + 0.35*vector + 0.20*investment_factors`
+4. **Post-processing**: Dedupe → HDBSCAN clustering → Investment perspective balancing
+5. **Response**: Balanced results promoting informed decision-making over confirmation bias
+
+### Investment Advisory Features ⭐
+**Query Intent Detection:**
+- **Buy Advice**: "should I buy BTC" → Returns bullish case + risk factors + balanced analysis
+- **Sell Advice**: "when to sell SOL" → Prioritizes bearish signals + timing indicators + profit strategies
+- **Analysis**: "analyze ETH investment" → Equal weight to all perspectives + educational content
+- **Timing**: "good time to invest" → Market timing indicators + risk management + context
+
+**Advanced Entity-Sentiment Scoring:**
+- **Entity Boost**: Content matching query entity gets +0.30 boost
+- **Entity Penalty**: Off-topic token entities get -0.50 penalty (ensures topical relevance)
+- **Sentiment Balance**: Investment queries boost BOTH bullish (+0.15) AND bearish (+0.15) perspectives
+- **Educational Boost**: Analytical content gets +0.25 boost over speculation (-0.20 penalty)
+
+**Smart Content Prioritization:**
+- Analytical keywords: "analysis", "research", "institutional", "development" → +0.25 boost
+- Speculative keywords: "moon", "pump", "rocket", "lambo" → -0.20 penalty
+- Investment queries require balanced risk assessment, not hype validation
 
 ### OpenSearch Index Mapping
 Key fields for hybrid search:

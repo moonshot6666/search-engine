@@ -315,16 +315,160 @@ class LocalHybridSearchEngine:
                 combined_scores[doc_id] = {"bm25": 0.0, "vector": 0.0}
             combined_scores[doc_id]["vector"] = score / max_vector  # Normalize
         
-        # Calculate final scores
+        # Calculate final scores with entity boosting
         final_results = []
+        query_lower = search_spec.query.lower()
+        
         for doc_id, scores in combined_scores.items():
-            # Use default weights: 45% BM25 + 35% vector + 20% other
-            final_score = (
+            # Base score calculation
+            base_score = (
                 0.45 * scores["bm25"] +
                 0.35 * scores["vector"] +
                 0.20 * 0.5  # Placeholder for other factors
             )
             
+            # Entity subject relevance scoring: boost relevant entities, penalize off-topic ones
+            entity_adjustment = 0.0
+            if doc_id < len(self.documents):
+                doc = self.documents[doc_id]
+                entities = doc.get("entities", [])
+                
+                # Detect query subject entity
+                query_subject_entity = None
+                if "btc" in query_lower or "bitcoin" in query_lower:
+                    query_subject_entity = "bitcoin"
+                elif "eth" in query_lower or "ethereum" in query_lower:
+                    query_subject_entity = "ethereum"
+                elif "sol" in query_lower or "solana" in query_lower:
+                    query_subject_entity = "solana"
+                elif "ada" in query_lower or "cardano" in query_lower:
+                    query_subject_entity = "cardano"
+                elif "matic" in query_lower or "polygon" in query_lower:
+                    query_subject_entity = "polygon"
+                elif "avax" in query_lower or "avalanche" in query_lower:
+                    query_subject_entity = "avalanche"
+                elif "link" in query_lower or "chainlink" in query_lower:
+                    query_subject_entity = "chainlink"
+                elif "uni" in query_lower or "uniswap" in query_lower:
+                    query_subject_entity = "uniswap"
+                
+                # Detect query sentiment intent
+                query_sentiment = None
+                bullish_keywords = ["bullish", "pump", "pumping", "moon", "rally", "up", "rise", "surge", "boost"]
+                bearish_keywords = ["bearish", "dump", "dumping", "crash", "fall", "drop", "selloff", "decline"]
+                
+                if any(keyword in query_lower for keyword in bullish_keywords):
+                    query_sentiment = "bullish"
+                elif any(keyword in query_lower for keyword in bearish_keywords):
+                    query_sentiment = "bearish"
+                
+                # Detect investment intent
+                query_investment_intent = None
+                buy_intent_keywords = ["should i buy", "should buy", "good investment", "worth buying", "time to buy", "invest in", "good buy"]
+                sell_intent_keywords = ["should i sell", "should sell", "time to sell", "when to sell", "take profit", "exit", "dump"]
+                timing_intent_keywords = ["when to", "good time", "right time", "best time", "timing", "when is"]
+                evaluation_keywords = ["analyze", "analysis", "pros and cons", "good or bad", "worth it", "evaluate"]
+                
+                if any(keyword in query_lower for keyword in buy_intent_keywords):
+                    query_investment_intent = "buy_advice"
+                elif any(keyword in query_lower for keyword in sell_intent_keywords):
+                    query_investment_intent = "sell_advice"  
+                elif any(keyword in query_lower for keyword in timing_intent_keywords):
+                    query_investment_intent = "timing_advice"
+                elif any(keyword in query_lower for keyword in evaluation_keywords):
+                    query_investment_intent = "evaluation"
+                
+                # Apply combined entity + sentiment scoring
+                if query_subject_entity:
+                    doc_has_subject_entity = False
+                    doc_has_other_token_entity = False
+                    
+                    for entity in entities:
+                        entity_name = entity.get("name", "").lower()
+                        entity_id = entity.get("entity_id", "").lower()
+                        entity_type = entity.get("entity_type", "")
+                        
+                        # Check if document contains the query subject entity
+                        if entity_type == "token":
+                            is_subject_match = False
+                            
+                            # Check for exact matches with query subject
+                            if (query_subject_entity == "bitcoin" and (entity_id == "btc" or "bitcoin" in entity_name)) or \
+                               (query_subject_entity == "ethereum" and (entity_id == "eth" or "ethereum" in entity_name)) or \
+                               (query_subject_entity == "solana" and (entity_id == "sol" or "solana" in entity_name)) or \
+                               (query_subject_entity == "cardano" and (entity_id == "ada" or "cardano" in entity_name)) or \
+                               (query_subject_entity == "polygon" and (entity_id == "matic" or "polygon" in entity_name)) or \
+                               (query_subject_entity == "avalanche" and (entity_id == "avax" or "avalanche" in entity_name)) or \
+                               (query_subject_entity == "chainlink" and (entity_id == "link" or "chainlink" in entity_name)) or \
+                               (query_subject_entity == "uniswap" and (entity_id == "uni" or "uniswap" in entity_name)):
+                                is_subject_match = True
+                                doc_has_subject_entity = True
+                            
+                            # If not a subject match and it's a token entity, it's off-topic
+                            if not is_subject_match:
+                                doc_has_other_token_entity = True
+                    
+                    # Entity relevance scoring (stronger penalties/boosts)
+                    if doc_has_subject_entity:
+                        entity_adjustment += 0.30  # Stronger boost for correct entity
+                    elif doc_has_other_token_entity:
+                        entity_adjustment -= 0.50  # Much stronger penalty for wrong entity
+                    
+                    # Investment-aware sentiment scoring
+                    doc_market_impact = doc.get("market_impact", "neutral")
+                    
+                    if query_investment_intent:
+                        # For investment queries, apply balanced sentiment approach
+                        if query_investment_intent in ["buy_advice", "sell_advice", "timing_advice", "evaluation"]:
+                            # Boost educational/analytical content over pure sentiment
+                            content_lower = doc.get("content", "").lower()
+                            
+                            # Detect educational/analytical content
+                            analytical_keywords = ["analysis", "fundamental", "technical", "risk", "strategy", "research", "study", "institutional", "adoption", "upgrade", "development"]
+                            speculative_keywords = ["moon", "pump", "dump", "rocket", "lambo", "diamond hands", "to the moon"]
+                            
+                            if any(keyword in content_lower for keyword in analytical_keywords):
+                                entity_adjustment += 0.25  # Boost analytical content
+                            elif any(keyword in content_lower for keyword in speculative_keywords):
+                                entity_adjustment -= 0.20  # Penalize speculative content
+                            
+                            # For investment queries, we want balanced perspectives
+                            if query_investment_intent == "buy_advice":
+                                # Buy advice should include both bullish case and risk assessment
+                                if doc_market_impact == "bullish":
+                                    entity_adjustment += 0.15  # Moderate boost for bullish case
+                                elif doc_market_impact == "bearish":
+                                    entity_adjustment += 0.15  # Also boost bearish for risk awareness
+                                # Neutral gets no sentiment adjustment but may get analytical boost
+                                
+                            elif query_investment_intent == "sell_advice":  
+                                # Sell advice should focus on profit-taking and risk management
+                                if doc_market_impact == "bearish":
+                                    entity_adjustment += 0.20  # Higher boost for sell signals
+                                elif doc_market_impact == "bullish":
+                                    entity_adjustment += 0.10  # Lower boost but still relevant
+                                    
+                            elif query_investment_intent in ["timing_advice", "evaluation"]:
+                                # Timing and evaluation need all perspectives equally
+                                if doc_market_impact in ["bullish", "bearish"]:
+                                    entity_adjustment += 0.12  # Equal moderate boost for both sentiments
+                        
+                    elif query_sentiment:
+                        # Standard sentiment matching for non-investment queries
+                        if query_sentiment == doc_market_impact:
+                            entity_adjustment += 0.25  # Boost for matching sentiment
+                        elif doc_market_impact in ["bullish", "bearish"] and query_sentiment != doc_market_impact:
+                            entity_adjustment -= 0.40  # Penalty for opposite sentiment
+                            
+                
+                # General entity matching for non-specific queries
+                else:
+                    for entity in entities:
+                        entity_name = entity.get("name", "").lower()
+                        if any(word in entity_name for word in query_lower.split()):
+                            entity_adjustment += 0.05  # Small boost for general matches
+            
+            final_score = max(0.0, min(base_score + entity_adjustment, 1.0))  # Cap between 0.0 and 1.0
             final_results.append((doc_id, final_score, scores))
         
         # Sort by final score and return top results

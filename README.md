@@ -1,8 +1,10 @@
-# Hybrid Search Engine
+# Investment-Aware Hybrid Search Engine 💎
 
-A production-ready hybrid search engine for financial/crypto content combining **BM25 keyword matching** + **384D vector semantic similarity** with beautiful CLI interface and real-time clustering.
+A production-ready **investment advisory search engine** for financial/crypto content combining **BM25 keyword matching** + **384D vector semantic similarity** + **intelligent investment guidance**. Features beautiful CLI interface, real-time clustering, and balanced investment perspectives.
 
-![CLI Demo](https://img.shields.io/badge/CLI-Production_Ready-green.svg) ![Performance](https://img.shields.io/badge/Response_Time-125ms-brightgreen.svg) ![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
+**🚀 Key Innovation**: Eliminates confirmation bias in crypto investment research by providing balanced bullish + bearish perspectives for informed decision-making.
+
+![CLI Demo](https://img.shields.io/badge/CLI-Investment_Advisory-brightgreen.svg) ![Performance](https://img.shields.io/badge/Response_Time-10_125ms-brightgreen.svg) ![Python](https://img.shields.io/badge/Python-3.10+-blue.svg) ![Investment](https://img.shields.io/badge/Investment-Balanced_Analysis-gold.svg)
 
 ## ⚡ Quick Start
 
@@ -13,59 +15,83 @@ pip install -r requirements.txt
 # 2. Start API server (auto-loads 384D embeddings)
 uvicorn src.api.main:app --reload --port 8000
 
-# 3. Search with beautiful CLI interface
-python cli_search.py "What's happening with Bitcoin?"
-python cli_search.py --interactive  # Interactive mode
-python cli_search.py "crypto analysis" --clustered  # With clustering
+# 3. Search with investment-aware CLI interface
+python cli_search.py "should I buy Bitcoin?"        # Investment advisory with balanced analysis
+python cli_search.py "What's happening with Bitcoin?" # Traditional analysis
+python cli_search.py --interactive                  # Interactive investment guidance mode
+python cli_search.py "crypto analysis" --clustered  # With thematic clustering
 ```
 
-## 🎨 CLI Interface
+## 🎨 Investment-Aware CLI Interface
 
-Beautiful command-line interface with rich formatting, real-time responses (~125ms), and comprehensive search features:
+Beautiful command-line interface with rich formatting, real-time responses (~10-125ms), and **intelligent investment advisory capabilities**:
 
 ```bash
 🚀 Hybrid Search Engine CLI
 💎 Financial/Crypto Content Search
 
-🥇 Score: 0.847 (BM25: 0.92, Vector: 0.78)  💎 BULLISH
-📱 Bitcoin analysis shows strong support at $45k... [ENTITIES: bitcoin, btc]
-👤 @crypto_analyst (125K followers) | ⚡ 342 engagement | 🕐 2h ago
+🥇 Score: 0.900 (BM25: 0.00, Vector: 1.00)  💎 BULLISH
+📱 Magic Eden Solana NFT volume surpassing OpenSea [ENTITIES: Solana]
+👤 @nft_metrics (31K followers) | ⚡ 445 engagement | 🕐 588d ago
+
+🥈 Score: 0.882 (BM25: 0.00, Vector: 0.95)  🔻 BEARISH  
+📱 Solana network congestion again. When will they fix scaling? [ENTITIES: Solana]
+👤 @sol_critic (8.5K followers) | ⚡ 109 engagement | 🕐 591d ago
 ```
 
-**Features:**
+**Investment Advisory Features:**
+- 💡 **Balanced Perspectives**: "should I buy SOL" returns BOTH bullish opportunities AND risk factors
+- 🧠 **Entity-Aware**: Automatically filters by query subject (SOL queries → SOL content only)
+- 🎯 **Investment Intent**: Detects buy/sell/timing queries and adjusts scoring accordingly
+- 📊 **Educational Focus**: Prioritizes analytical content over speculation and hype
+
+**Technical Features:**
 - 🎨 Rich colors and emojis with professional layout
-- ⚡ Lightning fast (~125ms response time)
-- 📊 BM25, Vector, and Final relevance scores
-- 🎯 Entity highlighting and market sentiment indicators
+- ⚡ Lightning fast (~10-125ms response time)
+- 📊 BM25, Vector, and Final relevance scores with precision
+- 🎯 Entity highlighting and market sentiment indicators (💎 BULLISH, 🔻 BEARISH)
 - 📂 HDBSCAN clustering for thematic organization
-- 🔄 Interactive mode with continuous searching
+- 🔄 Interactive mode with continuous investment guidance
 
-## 🔍 Architecture
+## 🔍 Investment-Aware Architecture
 
-**Hybrid Search**: BM25 (45%) + Vector Similarity (35%) + Boost Factors (20%)
+**Investment-Enhanced Hybrid Search**: BM25 (45%) + Vector Similarity (35%) + Investment Intelligence (20%)
 - Real BM25 algorithm (k1=1.2, b=0.75) with TF-IDF scoring
 - 384D semantic embeddings via sentence-transformers/all-MiniLM-L6-v2
+- **Investment-aware entity-sentiment scoring** for balanced perspectives
 - HDBSCAN clustering for thematic result organization
-- Natural language → SearchSpec DSL conversion
+- Natural language → Investment intent detection → SearchSpec conversion
+
+**Investment Intelligence:**
+- **Entity Relevance**: +0.30 boost for matching entities, -0.50 penalty for off-topic tokens
+- **Sentiment Balance**: Investment queries boost BOTH bullish AND bearish content
+- **Educational Priority**: +0.25 boost for analysis, -0.20 penalty for speculation
+- **Query Intent Detection**: Buy/Sell/Timing/Analysis queries get tailored scoring
 
 **Tech Stack:**
 - **Backend**: FastAPI + Pydantic
-- **Search**: LocalHybridSearchEngine + OpenSearch ready
-- **ML**: sentence-transformers, HDBSCAN, scikit-learn  
+- **Search**: LocalHybridSearchEngine with investment-aware scoring
+- **ML**: sentence-transformers, HDBSCAN, scikit-learn, TF-IDF
+- **Investment Logic**: Entity detection, sentiment analysis, balanced scoring algorithms
 - **CLI**: Click + Rich for beautiful terminal interface
 
 ## 🚀 API Endpoints
 
 ```bash
-# Natural language search (recommended)
+# Investment advisory search (recommended) - provides balanced perspectives
+curl -X POST "http://localhost:8000/ask" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "should I buy Bitcoin?", "size": 5}'
+
+# Traditional analysis search  
 curl -X POST "http://localhost:8000/ask" \
   -H "Content-Type: application/json" \
   -d '{"query": "Why is Bitcoin pumping?", "size": 5}'
 
-# Traditional search
+# Simple keyword search
 curl "http://localhost:8000/search?q=bitcoin ethereum&size=10"
 
-# Clustered search with themes
+# Clustered search with thematic organization
 curl -X POST "http://localhost:8000/search/clustered" \
   -H "Content-Type: application/json" \
   -d '{"query": "crypto market analysis", "size": 15}'
@@ -75,10 +101,11 @@ curl -X POST "http://localhost:8000/search/clustered" \
 
 | Component | Performance | Details |
 |-----------|------------|---------|
-| **Search Response** | ~125ms | 60x faster after optimization |
-| **CLI Experience** | Real-time | Sub-second user experience |
+| **Search Response** | ~10-125ms | Optimized for real-time investment guidance |
+| **CLI Experience** | Real-time | Sub-second user experience with balanced results |
+| **Investment Analysis** | ~10ms | Entity-sentiment scoring with balanced perspectives |
 | **Clustering** | 1-6ms | HDBSCAN thematic organization |
-| **Embedding Model** | Pre-loaded | One-time startup vs per-query |
+| **Embedding Model** | Pre-loaded | One-time startup (3s) vs per-query loading |
 
 ## 🐳 Docker Setup
 
@@ -108,13 +135,16 @@ search_engine/
 
 ## 🎯 Key Features
 
-- ✅ **Production-Ready**: Real BM25 + 384D semantic search
-- ✅ **Lightning Fast**: ~125ms response time with optimization
-- ✅ **Beautiful CLI**: Rich formatting with colors and emojis
-- ✅ **Smart Clustering**: HDBSCAN thematic result organization  
-- ✅ **Natural Language**: Rule-based query → SearchSpec conversion
-- ✅ **Scalable**: OpenSearch integration ready for production
-- ✅ **Real Embeddings**: sentence-transformers with caching
+- 💎 **Investment Advisory**: Balanced buy/sell/timing guidance eliminating confirmation bias
+- 🧠 **Entity-Aware Filtering**: Automatic subject filtering (BTC queries → BTC content only)
+- 📊 **Sentiment Intelligence**: Investment queries return both bullish AND bearish perspectives  
+- ⚡ **Lightning Fast**: ~10-125ms response time optimized for real-time investment guidance
+- ✅ **Production-Ready**: Real BM25 + 384D semantic search with investment-aware scoring
+- 🎨 **Beautiful CLI**: Rich formatting with colors, emojis, and investment indicators
+- 📂 **Smart Clustering**: HDBSCAN thematic result organization with confidence scoring
+- 🔍 **Natural Language**: Advanced query → Investment intent detection → SearchSpec conversion
+- 📈 **Educational Focus**: Prioritizes analysis and research over speculation and hype
+- 🛠️ **Extensible**: Ready for OpenSearch integration and production scaling
 
 ## 🔧 Development
 
@@ -129,19 +159,30 @@ python -m src.etl.embeddings --input data/tweets.jsonl --output normalized/
 pytest tests/ -v
 ```
 
-## 📈 Search Quality
+## 📈 Investment-Aware Search Quality
 
-**Hybrid Approach**: Combines precision of keyword matching (BM25) with semantic understanding (vector similarity) for superior results compared to either method alone.
+**Investment-Enhanced Hybrid Approach**: Combines precision of keyword matching (BM25) with semantic understanding (vector similarity) and **investment intelligence** for superior decision-making support.
 
-**Entity Recognition**: Automatic detection of tokens (BTC, ETH), KOLs (Elon, Vitalik), events, and macros with confidence scoring.
+**Advanced Entity-Sentiment Analysis**: 
+- Automatic detection of tokens (BTC, ETH), KOLs, events, and macros with confidence scoring
+- **Entity filtering**: "SOL queries" only return Solana-related content (eliminates irrelevant results)
+- **Sentiment balancing**: Investment queries boost both bullish opportunities AND risk factors
 
-**Intelligent Clustering**: Real-time HDBSCAN clustering groups results by themes like "Bitcoin & Ethereum - Security Issues" with automatic labeling.
+**Investment Advisory Intelligence**:
+- **Buy advice queries**: Return growth potential + risk assessment + market timing
+- **Sell advice queries**: Prioritize exit signals + profit-taking strategies + market context  
+- **Analysis queries**: Provide balanced perspectives + educational content + fundamental analysis
+- **Speculation filtering**: Promotes research-based content over hype and speculation
+
+**Intelligent Clustering**: Real-time HDBSCAN clustering groups results by themes like "Solana - Performance Issues vs NFT Growth" with automatic labeling and confidence scoring.
 
 ## 🛠️ Next Development
 
-- **LLM Integration**: OpenAI/Anthropic answer synthesis with citations
-- **Hybrid Clustering**: Nightly + real-time for production scale  
-- **Advanced Features**: Query suggestions, personalization, multi-language
+- **Advanced Investment Features**: Portfolio analysis, risk scoring, market timing indicators
+- **LLM Integration**: OpenAI/Anthropic answer synthesis with citations and investment disclaimers
+- **Personalization**: User investment preferences, risk tolerance, portfolio tracking
+- **Advanced Analytics**: Sentiment trend analysis, social volume indicators, whale activity detection
+- **Multi-Asset Support**: Expand beyond crypto to stocks, commodities, forex with investment intelligence
 
 ## 📄 License
 
