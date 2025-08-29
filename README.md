@@ -9,17 +9,17 @@ A production-ready **investment advisory search engine** for financial/crypto co
 ## ⚡ Quick Start
 
 ```bash
-# 1. Install dependencies
-pip install -r requirements.txt
+# 1. Setup development environment
+./scripts/setup_dev.sh
 
-# 2. Start API server (auto-loads 384D embeddings)
-uvicorn src.api.main:app --reload --port 8000
+# 2. Start API server (auto-loads 384D embeddings)  
+./scripts/start_server.sh
 
 # 3. Search with investment-aware CLI interface
-python cli_search.py "should I buy Bitcoin?"        # Investment advisory with balanced analysis
-python cli_search.py "What's happening with Bitcoin?" # Traditional analysis
-python cli_search.py --interactive                  # Interactive investment guidance mode
-python cli_search.py "crypto analysis" --clustered  # With thematic clustering
+./scripts/search.sh "should I buy Bitcoin?"        # Investment advisory with balanced analysis
+./scripts/search.sh "What's happening with Bitcoin?" # Traditional analysis  
+./scripts/search.sh --interactive                  # Interactive investment guidance mode
+./scripts/search.sh "crypto analysis" --clustered  # With thematic clustering
 ```
 
 ## 🎨 Investment-Aware CLI Interface
@@ -121,15 +121,24 @@ curl http://localhost:9200/_cluster/health?pretty
 
 ```
 search_engine/
-├── cli_search.py             # Beautiful CLI interface
-├── src/
+├── scripts/                  # Executable scripts and utilities
+│   ├── cli_search.py         # Beautiful CLI interface
+│   ├── setup_dev.sh          # Development environment setup
+│   ├── start_server.sh       # API server startup
+│   ├── search.sh             # CLI search wrapper
+│   └── run_tests.sh          # Test runner
+├── src/                      # Core application code
 │   ├── api/main.py           # FastAPI endpoints
 │   ├── search/local_search.py # Hybrid BM25+vector engine  
 │   ├── search/cluster.py     # HDBSCAN clustering
 │   ├── etl/embeddings.py     # 384D embedding generation
 │   └── llm/spec_gen.py       # Natural language processing
+├── tests/                    # Test suites
+│   ├── integration/          # End-to-end system tests
+│   └── unit/                 # Unit tests
 ├── data/                     # Sample tweets (50 documents)
 ├── normalized/               # Tweets with 384D embeddings
+├── config/                   # Configuration files
 └── requirements.txt
 ```
 
@@ -149,8 +158,11 @@ search_engine/
 ## 🔧 Development
 
 ```bash
+# Setup development environment
+./scripts/setup_dev.sh
+
 # Run comprehensive tests
-python test_search_system.py
+./scripts/run_tests.sh
 
 # Generate embeddings for new data
 python -m src.etl.embeddings --input data/tweets.jsonl --output normalized/

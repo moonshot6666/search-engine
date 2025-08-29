@@ -20,7 +20,14 @@ Architecture: Pre-tagged Data → Investment Intent Detection → Entity+Sentime
 ## Project Structure
 ```
 search_engine/
-├── src/
+├── scripts/                     # Executable scripts and utilities
+│   ├── cli_search.py            # Investment-aware CLI search interface
+│   ├── setup_dev.sh             # Development environment setup
+│   ├── start_server.sh          # API server startup script  
+│   ├── search.sh                # CLI search wrapper
+│   ├── run_tests.sh             # Test runner script
+│   └── setup.py                 # Python package setup
+├── src/                         # Core application code
 │   ├── api/main.py              # FastAPI endpoints with investment advisory
 │   ├── etl/
 │   │   ├── embeddings.py        # 384D embedding generation (sentence-transformers)
@@ -32,6 +39,11 @@ search_engine/
 │   │   └── blend.py             # Score blending & result deduplication
 │   └── llm/
 │       └── spec_gen.py          # Natural language → SearchSpec conversion
+├── tests/                       # Test suites
+│   ├── integration/
+│   │   └── test_search_system.py # Comprehensive system testing
+│   ├── unit/                    # Unit tests (future)
+│   └── test_api.py              # API endpoint tests
 ├── data/
 │   └── expanded_sample_tweets.jsonl    # Sample tweets (50 tweets)
 ├── normalized/
@@ -39,8 +51,6 @@ search_engine/
 ├── config/
 │   ├── opensearch.yml           # Index mappings & settings
 │   └── entities.yml             # Token/project/KOL registry
-├── cli_search.py                # Investment-aware CLI search interface
-├── test_search_system.py        # Comprehensive system testing
 ├── docker-compose-minimal.yml   # OpenSearch setup (optional)
 └── requirements.txt
 ```
@@ -54,8 +64,12 @@ search_engine/
 
 ### Setup & Dependencies
 ```bash
+# Automated development environment setup
+./scripts/setup_dev.sh
+
+# Manual setup (if needed)
 pip install -r requirements.txt
-# Core dependencies now include: rich==13.6.0 for CLI formatting
+# Core dependencies now include: rich==13.6.0 for CLI formatting  
 pip install opensearch-py fastapi uvicorn pydantic scikit-learn hdbscan openai rich click
 ```
 
@@ -83,6 +97,10 @@ python -m src.etl.embeddings \
 
 ### API Server (Production-Ready with Real Search)
 ```bash
+# Start API server with automated setup
+./scripts/start_server.sh
+
+# Manual startup (if needed)
 uvicorn src.api.main:app --reload --port 8000
 # Automatically loads normalized/tweets_with_embeddings.jsonl (384D embeddings)
 # Uses LocalHybridSearchEngine with real BM25 + semantic vector search
@@ -96,8 +114,11 @@ uvicorn src.api.main:app --reload --port 8000
 
 ### Testing
 ```bash
-# Comprehensive system test (local + API + clustering)
-python test_search_system.py
+# Run all tests with automated script
+./scripts/run_tests.sh
+
+# Manual testing
+python tests/integration/test_search_system.py
 
 # Test specific components
 pytest tests/ -v
@@ -120,26 +141,26 @@ curl "http://localhost:9200/crypto-tweets-hybrid/_search?pretty" \
 ### Investment-Aware CLI Search Interface ⚡
 ```bash
 # Investment advisory queries with balanced perspectives
-python cli_search.py "should I buy Bitcoin?"
-python cli_search.py "when is a good time to sell SOL?"
-python cli_search.py "analyze ETH as an investment"
+./scripts/search.sh "should I buy Bitcoin?"
+./scripts/search.sh "when is a good time to sell SOL?"
+./scripts/search.sh "analyze ETH as an investment"
 
 # Traditional crypto analysis queries
-python cli_search.py "What's happening with Bitcoin?"
-python cli_search.py "why is SOL bullish?"
-python cli_search.py "DeFi market analysis"
+./scripts/search.sh "What's happening with Bitcoin?"
+./scripts/search.sh "why is SOL bullish?"
+./scripts/search.sh "DeFi market analysis"
 
 # Interactive mode with continuous queries
-python cli_search.py --interactive
+./scripts/search.sh --interactive
 
 # Clustered results for thematic organization  
-python cli_search.py "crypto market sentiment" --clustered --size 10
+./scripts/search.sh "crypto market sentiment" --clustered --size 10
 
 # Custom API endpoint and result size
-python cli_search.py "DeFi protocols" --size 15 --api-base http://localhost:8000
+./scripts/search.sh "DeFi protocols" --size 15 --api-base http://localhost:8000
 
 # Help and all options
-python cli_search.py --help
+./scripts/search.sh --help
 ```
 
 **CLI Features (Production-Ready):**
@@ -160,25 +181,25 @@ python cli_search.py --help
 **CLI Usage Patterns:**
 ```bash
 # Investment advisory queries (balanced perspectives)
-python cli_search.py "should I buy Bitcoin?"          # → Bullish case + Risk factors
-python cli_search.py "when to sell Ethereum?"         # → Sell signals + Market timing  
-python cli_search.py "analyze Solana investment"      # → Comprehensive analysis
+./scripts/search.sh "should I buy Bitcoin?"          # → Bullish case + Risk factors
+./scripts/search.sh "when to sell Ethereum?"         # → Sell signals + Market timing  
+./scripts/search.sh "analyze Solana investment"      # → Comprehensive analysis
 
 # Traditional crypto research
-python cli_search.py "Bitcoin news today"
-python cli_search.py "Ethereum DeFi protocols" --size 10
-python cli_search.py "why is SOL bullish?" --size 5
+./scripts/search.sh "Bitcoin news today"
+./scripts/search.sh "Ethereum DeFi protocols" --size 10
+./scripts/search.sh "why is SOL bullish?" --size 5
 
 # Research mode with clustering
-python cli_search.py "crypto market analysis" --clustered --size 20
+./scripts/search.sh "crypto market analysis" --clustered --size 20
 
 # Interactive exploration with investment guidance
-python cli_search.py --interactive
+./scripts/search.sh --interactive
 # Then type queries like: "should I invest in DeFi tokens?"
 # Press Ctrl+C or type 'quit' to exit
 
 # Custom configurations
-python cli_search.py "NFT marketplace trends" --api-base http://localhost:8000 --size 15
+./scripts/search.sh "NFT marketplace trends" --api-base http://localhost:8000 --size 15
 ```
 
 ## SearchSpec DSL Schema
